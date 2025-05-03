@@ -46,9 +46,9 @@ public abstract class AbstractCell<K extends AbstractCell<K>> implements Copyabl
         return valueId;
     }
 
-    // public Set<Integer> getValues() {
-    //     return values;
-    // }
+    public Set<Integer> getValues() {
+        return values;
+    }
 
     public boolean isSet() {
         return valueId != null;

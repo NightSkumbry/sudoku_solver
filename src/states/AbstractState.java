@@ -14,9 +14,8 @@ public abstract class AbstractState {
         this.selection = selection;
     }
 
-    public void printSelectionMenu(String message) {
-        System.out.println("\n\n\n" + message);
-        System.out.println("\nPlease select an option:");
+    public void printSelectionMenu() {
+        System.out.println("\n\n\n");
         Printer.printSelectionMenu(selection);
     }
 

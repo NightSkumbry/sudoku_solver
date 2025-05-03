@@ -1,16 +1,16 @@
 package states;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
+import sudokues.ClassicSudoku;
 import util.Action;
 import util.ProgramState;
 import util.Printer;
 
 public class ClassicSudokuMenu extends AbstractState {
-    
+    public static ClassicSudoku sudoku;
+    private static boolean isHistoryView = false;
 
 
     public ClassicSudokuMenu() {
@@ -19,27 +19,76 @@ public class ClassicSudokuMenu extends AbstractState {
 
     private static Map<String, String> createMenuOptions() {
         Map<String, String> menuOptions = new LinkedHashMap<>();
-        menuOptions.put("classic", "Classic Sudoku.");
+        menuOptions.put("solve", "Generate a solution.");
+        menuOptions.put("sudo_solve", "Calculate all solutions.");
+        menuOptions.put("print", "Print Sudoku.");
+        menuOptions.put("history", "Enter History view.");
         menuOptions.put("tm", "Back to main menu.");
         menuOptions.put("e", "Exit.");
         return menuOptions;
     }
 
+    private static Map<String, String> createHistoryOptions() {
+        Map<String, String> menuOptions = new LinkedHashMap<>();
+        menuOptions.put("r", "Return.");
+        return menuOptions;
+    }
+
     @Override
-    public Action doSelection(String selectionIndex) {
-        switch (selectionIndex) {
-            case "tm":
-                this.backToMenu();
-                break;
-            case "e":
-                return Action.EXIT;
-            case "classic":
-                this.loadClassicSudoku();
-                break;
-            default:
-                System.out.println("Invalid selection. Please try again.");
+    public Action doSelection(String selection) {
+        if (sudoku == null) {
+            System.out.println("No Sudoku loaded. Please load a Sudoku first.");
+            backToMenu();
+            return Action.NOTHING;
         }
-        return Action.NOTHING;
+
+        if (isHistoryView) {
+            switch (selection) {
+                case "r":
+                    this.returnFromHistoryView();
+                    break;
+                default:
+                    return sudoku.getHistory().doSelection(selection);
+                }
+            return Action.NOTHING;
+        }
+
+        else {
+            switch (selection) {
+                case "tm":
+                    this.backToMenu();
+                    break;
+                case "e":
+                    return Action.EXIT;
+                case "solve":
+                    this.solve();
+                    break;
+                case "sudo_solve":
+                    this.sudoSolve();
+                    break;
+                case "print":
+                    this.printSudoku();
+                    break;
+                case "history":
+                    this.EnterHistoryView();
+                    break;
+                default:
+                    System.out.println("Invalid selection. Please try again.");
+            }
+            return Action.NOTHING;
+        }
+    }
+
+    @Override
+    public void printSelectionMenu() {
+        System.out.println("\n\n");
+        this.printSudoku();
+
+        Map<String, String> s = new LinkedHashMap<>();
+        if (isHistoryView) s.putAll(sudoku.getHistory().getSelectionOptions());
+        s.putAll(selection);
+
+        Printer.printSelectionMenu(s);
     }
 
 
@@ -47,54 +96,26 @@ public class ClassicSudokuMenu extends AbstractState {
         ProgramState.currentState = ProgramState.MENU;
     }
 
-    private void loadClassicSudoku() {
-        System.out.println("Sudoku should be written as nine lines of nine digits, separated by spaces.");
-        System.out.println("Use '0' for empty cells.");
-        System.out.println("Empty line means input interrupt.");
-
-        List<int[]> buffer = new ArrayList<>();
-
-        for (int i = 0; i < 9; i++) {
-            while (true) {
-                String line = Printer.getInput();
-
-                if (line.isEmpty()) {
-                    System.out.println("Input interrupted.");
-                    return;
-                }
-
-                String[] splitLine = line.split("\\s+");
-                if (splitLine.length != 9) {
-                    System.out.println("Invalid input. Please enter exactly nine digits.");
-                    continue;
-                }
-
-                try {
-                    int[] row = new int[9];
-                    boolean valid = true;
-
-                    for (int j = 0; j < 9; j++) {
-                        if (!splitLine[j].matches("\\d")) {
-                            valid = false;
-                            break;
-                        }
-                        row[j] = Integer.parseInt(splitLine[j]);
-                    }
-
-                    if (!valid) {
-                        System.out.println("Invalid input. Please enter digits only.");
-                        continue;
-                    }
-
-                    buffer.add(row);
-                    break;
-                }
-                catch (NumberFormatException e) {
-                    System.out.println("Invalid input. Please enter nine digits separated by spaces.");
-                }
-            }
+    private void solve() {
+        sudoku.findOneSolution();
+    }
+    private void sudoSolve() {
+        sudoku.findAllSolutions();
+    }
+    private void printSudoku() {
+        if (sudoku != null) {
+            System.out.println("Current Sudoku grid:");
+            System.out.println(sudoku.toString());
+        } else {
+            System.out.println("No Sudoku loaded. Please load a Sudoku first.");
         }
-
-        ProgramState.currentState = ProgramState.CLASSIC_SUDOKU;
+    }
+    private void EnterHistoryView() {
+        isHistoryView = true;
+        selection = createHistoryOptions();
+    }
+    private void returnFromHistoryView() {
+        isHistoryView = false;
+        selection = createMenuOptions();
     }
 }

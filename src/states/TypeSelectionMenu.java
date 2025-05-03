@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import sudokues.ClassicSudoku;
 import util.Action;
 import util.ProgramState;
 import util.Printer;
@@ -50,7 +51,7 @@ public class TypeSelectionMenu extends AbstractState {
         System.out.println("Use '0' for empty cells.");
         System.out.println("Empty line means input interrupt.");
 
-        List<int[]> buffer = new ArrayList<>();
+        List<Integer> buffer = new ArrayList<>();
 
         for (int i = 0; i < 9; i++) {
             while (true) {
@@ -68,7 +69,7 @@ public class TypeSelectionMenu extends AbstractState {
                 }
 
                 try {
-                    int[] row = new int[9];
+                    List<Integer> row = new ArrayList<>();
                     boolean valid = true;
 
                     for (int j = 0; j < 9; j++) {
@@ -76,7 +77,7 @@ public class TypeSelectionMenu extends AbstractState {
                             valid = false;
                             break;
                         }
-                        row[j] = Integer.parseInt(splitLine[j]);
+                        row.add(Integer.parseInt(splitLine[j]));
                     }
 
                     if (!valid) {
@@ -84,7 +85,7 @@ public class TypeSelectionMenu extends AbstractState {
                         continue;
                     }
 
-                    buffer.add(row);
+                    buffer.addAll(row);
                     break;
                 }
                 catch (NumberFormatException e) {
@@ -92,6 +93,9 @@ public class TypeSelectionMenu extends AbstractState {
                 }
             }
         }
+        
+        ClassicSudoku sudoku = new ClassicSudoku(buffer);
+        ClassicSudokuMenu.sudoku = sudoku;
 
         ProgramState.currentState = ProgramState.CLASSIC_SUDOKU;
     }

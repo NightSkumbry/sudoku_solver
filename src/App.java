@@ -5,7 +5,7 @@ public class App {
     public static void main(String[] args) throws Exception {
         printWelcomeMessage();
         while (true) {
-            ProgramState.currentState.getState().printSelectionMenu("");
+            ProgramState.currentState.getState().printSelectionMenu();
 
             String input = util.Printer.getInput();
 

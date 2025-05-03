@@ -8,14 +8,14 @@ import java.util.List;
 import grids.cells.AbstractCell;
 import grids.rules.Copyable;
 
-public abstract class AbstractGrid<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> implements Iterable<AbstractCell<K>>, Copyable<T> {
-    protected List<AbstractCell<K>> baseGrid;
+public abstract class AbstractGrid<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> implements Iterable<K>, Copyable<T> {
+    protected List<K> baseGrid;
 
-    public AbstractGrid(List<AbstractCell<K>> baseGrid) {
+    public AbstractGrid(List<K> baseGrid) {
         this.baseGrid = new ArrayList<>(baseGrid);
     }
 
-    public AbstractCell<K> get(int index) {
+    public K get(int index) {
         return baseGrid.get(index);
     }
 
@@ -24,7 +24,7 @@ public abstract class AbstractGrid<T extends AbstractGrid<T, K>, K extends Abstr
     }
 
     @Override
-    public Iterator<AbstractCell<K>> iterator() {
+    public Iterator<K> iterator() {
         return baseGrid.iterator();
     }
 
@@ -45,25 +45,7 @@ public abstract class AbstractGrid<T extends AbstractGrid<T, K>, K extends Abstr
     //     return new AbstractGrid(newGrid);
     // }
 
-    // @Override
-    // public String toString() {
-    //     StringBuilder sb = new StringBuilder();
-    //     for (int i = 0; i < 81; i += 9) {
-    //         for (int k = i; k < i + 9; k++) {
-    //             sb.append(baseGrid.get(k));
-    //             if ((k % 9) % 3 == 2 && k % 9 != 8) {
-    //                 sb.append(" |");
-    //             }
-    //             sb.append(" ");
-    //         }
-    //         sb.setLength(sb.length() - 1); // Remove the last space
-    //         sb.append("\n");
-    //         if ((i / 9) % 3 == 2 && i != 72) {
-    //             sb.append("-------+-------+-------\n");
-    //         }
-    //     }
-    //     return sb.toString();
-    // }
+    
 
 
 }

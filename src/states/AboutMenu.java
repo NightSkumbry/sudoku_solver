@@ -35,10 +35,9 @@ public class AboutMenu extends AbstractState {
     }
 
     @Override
-    public void printSelectionMenu(String message) {
-        System.out.println("\n\n\n" + message);
+    public void printSelectionMenu() {
+        System.out.println("\n\n");
         System.out.println("About this program:\nAuthor: Night_Skumbry (https://t.me/night_skumbry)\nVersion: 0.1\nThis program is a Sudoku solver.\nIt can solve puzzles with explanations.");
-        System.out.println("\nPlease select an option:");
         Printer.printSelectionMenu(selection);
     }
 
