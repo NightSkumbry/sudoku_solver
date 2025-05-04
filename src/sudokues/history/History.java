@@ -18,9 +18,13 @@ public class History<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> {
 
     public History(T grid) {
         this.history = new ArrayList<>();
-        this.history.add(new InitialCreateOperation<>());
+        this.history.add(new InitialCreateOperation<>(0));
         this.currentIndex = 0;
         this.grid = grid;
+    }
+
+    public int getNextOperationID() {
+        return history.size();
     }
 
     public void addOperation(AbstractOperation<T, K, ?> operation) {

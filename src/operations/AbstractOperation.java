@@ -13,9 +13,11 @@ import util.Action;
 
 public abstract class AbstractOperation<T extends AbstractGrid<T, K>, K extends AbstractCell<K>, L extends AbstractOperationStep<T, K>> {
     protected List<L> steps;
+    protected int operationID;
 
-    public AbstractOperation() {
+    public AbstractOperation(int operationID) {
         this.steps = new ArrayList<>();
+        this.operationID = operationID;
     }
 
     public int apply(T grid) {

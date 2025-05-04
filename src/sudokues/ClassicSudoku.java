@@ -32,7 +32,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
     private void computePossibles() {
         System.out.println("Computing possibles...");
 
-        ComputePossiblesOperation<ClassicGrid, ClassicCell> computePossiblesOperation = new ComputePossiblesOperation<>();
+        ComputePossiblesOperation<ClassicGrid, ClassicCell> computePossiblesOperation = new ComputePossiblesOperation<>(history.getNextOperationID());
 
         // check rows
         for (int i = 0; i < 9; i++) {

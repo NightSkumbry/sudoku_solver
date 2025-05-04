@@ -10,8 +10,8 @@ import util.Action;
 
 public class InitialCreateOperation<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> extends AbstractOperation<T, K, AbstractOperationStep<T, K>> {
 
-    public InitialCreateOperation() {
-        super();
+    public InitialCreateOperation(int operationID) {
+        super(operationID);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class InitialCreateOperation<T extends AbstractGrid<T, K>, K extends Abst
     @Override
     public void printGrid(T grid) {
         System.out.println(grid.toString());
-        System.out.println("Grid initialized.\n");
+        System.out.println(this.operationID + ": Grid initialized.\n");
     }
 
     @Override

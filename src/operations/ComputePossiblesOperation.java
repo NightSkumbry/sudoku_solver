@@ -18,8 +18,8 @@ public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends A
 
     private Set<Integer> modifiedIndices;
 
-    public ComputePossiblesOperation() {
-        super();
+    public ComputePossiblesOperation(int operationID) {
+        super(operationID);
     }
 
     @Override
@@ -88,6 +88,7 @@ public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends A
 
     @Override
     public void printGrid(T grid) {
+
         for (Integer index : modifiedIndices) {
             K cell = grid.get(index);
             if (cell != null) {
@@ -95,6 +96,7 @@ public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends A
             }
         }
         System.out.println(grid.toString());
+        System.out.println(this.operationID + ": Possible values recomputed.\n");
     }
     
 }
