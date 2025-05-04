@@ -77,7 +77,6 @@ public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends A
 
                 printInfo(index, reasonCells, values, grid);
 
-                Map<String, String> options = new HashMap<>();
                 Printer.getInput();
             }
             else {
