@@ -11,20 +11,24 @@ import operations.AbstractOperation;
 import operations.InitialCreateOperation;
 import util.Action;
 
-public class History<L extends AbstractGrid<L, K>, K extends AbstractCell<K>> {
-    private List<AbstractOperation<L, K>> history;
+public class History<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> {
+    private List<AbstractOperation<T, K, ?>> history;
     private int currentIndex;
-    private L grid;
+    private T grid;
 
-    public History(L grid) {
+    public History(T grid) {
         this.history = new ArrayList<>();
         this.history.add(new InitialCreateOperation<>());
         this.currentIndex = 0;
         this.grid = grid;
     }
 
-    public void addOperation(AbstractOperation<L, K> operation) {
+    public void addOperation(AbstractOperation<T, K, ?> operation) {
         history.add(operation);
+    }
+
+    public void printGrid() {
+        history.get(currentIndex).printGrid(grid);
     }
 
     public void moveBack() {
@@ -55,7 +59,7 @@ public class History<L extends AbstractGrid<L, K>, K extends AbstractCell<K>> {
         if (currentIndex < history.size() - 1) {
             options.put(">", "Do next operation");
         }
-        options.putAll(history.get(currentIndex).getSelectionOptions());
+        options.putAll(history.get(currentIndex).getSelectionOptions(grid));
         return options;
     }
 
@@ -67,7 +71,7 @@ public class History<L extends AbstractGrid<L, K>, K extends AbstractCell<K>> {
             moveForward();
             return Action.NOTHING;
         } else {
-            return history.get(currentIndex).doSelection(selection);
+            return history.get(currentIndex).doSelection(selection, grid);
         }
     }
 }

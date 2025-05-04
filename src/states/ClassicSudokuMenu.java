@@ -104,8 +104,9 @@ public class ClassicSudokuMenu extends AbstractState {
     }
     private void printSudoku() {
         if (sudoku != null) {
-            System.out.println("Current Sudoku grid:");
-            System.out.println(sudoku.toString());
+            System.out.println("Current Sudoku grid:\n");
+            if (!isHistoryView) System.out.println(sudoku.toString());
+            else sudoku.getHistory().printGrid();
         } else {
             System.out.println("No Sudoku loaded. Please load a Sudoku first.");
         }

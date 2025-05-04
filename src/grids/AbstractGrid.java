@@ -23,6 +23,12 @@ public abstract class AbstractGrid<T extends AbstractGrid<T, K>, K extends Abstr
         baseGrid.get(index).setValue(value);
     }
 
+    public abstract Integer getIndexByCoordinates(String coordinates);
+
+    public abstract String getCoordinatesPrompt();
+
+    public abstract String getCoordinatesByIndex(int index);
+
     @Override
     public Iterator<K> iterator() {
         return baseGrid.iterator();

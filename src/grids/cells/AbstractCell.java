@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import grids.rules.Copyable;
+import util.ConsoleColors;
 
 public abstract class AbstractCell<K extends AbstractCell<K>> implements Copyable<K>{
 
@@ -11,6 +12,7 @@ public abstract class AbstractCell<K extends AbstractCell<K>> implements Copyabl
     protected Integer valueId;
     protected Set<Integer> values;
     public final boolean wasPrePlaced;
+    private ConsoleColors color;
 
     protected AbstractCell(char[] possibleValueChars, Integer value, boolean wasPrePlaced) {
         if (value != null && (value < 0 || value >= possibleValueChars.length)) {
@@ -37,9 +39,26 @@ public abstract class AbstractCell<K extends AbstractCell<K>> implements Copyabl
         this(possibleValueChars, null, false);
     }
 
+    public void setColor(ConsoleColors color) {
+        this.color = color;
+    }
+
+    public char getChar(Integer value) {
+        if (value == null) return '.';
+        return possibleValueChars[value];
+    }
+
     @Override
     public String toString() {
-        return (valueId != null) ? Character.toString(possibleValueChars[valueId]) : ".";
+        if (color == null) {
+            if (!wasPrePlaced) return (valueId != null) ? Character.toString(possibleValueChars[valueId]) : ".";
+            return ConsoleColors.WHITE_UNDERLINED.getSequence() + ((valueId != null) ? Character.toString(possibleValueChars[valueId]) : ".") + ConsoleColors.RESET.getSequence();
+        }
+        String s;
+        if (!wasPrePlaced) s = color.getSequence() + ((valueId != null) ? Character.toString(possibleValueChars[valueId]) : ".") + ConsoleColors.RESET.getSequence();
+        else s = color.getUnderlinedVariant().getSequence() + ((valueId != null) ? Character.toString(possibleValueChars[valueId]) : ".") + ConsoleColors.RESET.getSequence();;
+        color = null; // Reset color after use
+        return s;
     }
 
     public Integer getValue() {

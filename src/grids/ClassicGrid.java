@@ -56,6 +56,28 @@ public class ClassicGrid extends AbstractGrid<ClassicGrid, ClassicCell> implemen
     }
 
     @Override
+    public Integer getIndexByCoordinates(String coordinates) {
+        try {
+            String[] parts = coordinates.split(" ");
+            int x = Integer.parseInt(parts[0]);
+            int y = Integer.parseInt(parts[1]);
+            return y * 9 + x;
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            return null; // Invalid coordinates
+        }
+    }
+
+    @Override
+    public String getCoordinatesByIndex(int index) {
+        return (index % 9) + " " + (index / 9);
+    }
+
+    @Override
+    public String getCoordinatesPrompt() {
+        return "x y";
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 81; i += 9) {
@@ -180,5 +202,20 @@ public class ClassicGrid extends AbstractGrid<ClassicGrid, ClassicCell> implemen
         return boxIndices.get(squareIndex).stream()
                 .map(index -> baseGrid.get(index))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public int getIndexByBoxIndex(int boxIndex, int cellIndex) {
+        return boxIndices.get(boxIndex).get(cellIndex);
+    }
+
+    @Override
+    public int getIndexByRowIndex(int rowIndex, int cellIndex) {
+        return rowIndices.get(rowIndex).get(cellIndex);
+    }
+    
+    @Override
+    public int getIndexByColumnIndex(int columnIndex, int cellIndex) {
+        return columnIndices.get(columnIndex).get(cellIndex);
     }
 }
