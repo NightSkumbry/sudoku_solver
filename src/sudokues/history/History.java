@@ -69,10 +69,20 @@ public class History<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> {
 
     public Action doSelection(String selection) {
         if (selection.equals("<")) {
-            moveBack();
+            try {
+                moveBack();
+            }
+            catch (IndexOutOfBoundsException e) {
+                System.out.println("No previous operation to undo.");
+            }
             return Action.NOTHING;
         } else if (selection.equals(">")) {
-            moveForward();
+            try {
+                moveForward();
+            }
+            catch (IndexOutOfBoundsException e) {
+                System.out.println("No next operation to redo.");
+            }
             return Action.NOTHING;
         } else {
             return history.get(currentIndex).doSelection(selection, grid);

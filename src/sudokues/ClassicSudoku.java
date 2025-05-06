@@ -7,6 +7,8 @@ import java.util.Set;
 import grids.ClassicGrid;
 import grids.cells.ClassicCell;
 import operations.ComputePossiblesOperation;
+import operations.PlaceObviousOperation;
+import operations.steps.PlaceObviousStep;
 import operations.steps.RemovePossibleStep;
 
 public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
@@ -17,19 +19,67 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
     @Override
     public void findOneSolution() {
         System.out.println("Finding one solution...");
+        if (fullySolved) {
+            System.out.println("Grid is already fully solved.");
+            return;
+        }
+        while (true) { 
+            boolean flag = false;
+            flag |= computePossibles();
+            flag |= placeObvious();
 
-        computePossibles();
+            if (!flag) {
+                break;
+            }
+        }
+
+        if (isFull()) {
+            System.out.println("Grid is fully solved.");
+            return;
+        }
+        System.out.println("Grid is not fully solved yet. But I can't find any more values.");
     }
 
+    private boolean isFull() {
+        fullySolved =  currentGrid.isFull() && currentGrid.isValid(); //TODO: redo when implementing branching
+        return fullySolved;
+    }
+    
     @Override
     public void findAllSolutions() {
         while (!fullySolved) {
             findOneSolution();
-            break; //TODO: remove this line when implementing findOneSolution
         }
     }
 
-    private void computePossibles() {
+
+    private boolean placeObvious() {
+        System.out.println("Placing obvious values...");
+
+        PlaceObviousOperation<ClassicGrid, ClassicCell> placeObviousOperation = new PlaceObviousOperation<>(history.getNextOperationID());
+
+        for (int i = 0; i < 81; i++) {
+            ClassicCell cell = currentGrid.get(i);
+            if (cell.isSet()) {
+                continue;
+            }
+            Set<Integer> possibles = cell.getValues();
+            if (possibles.size() == 1) {
+                Integer value = possibles.iterator().next();
+                cell.setValue(value);
+                placeObviousOperation.addStep(new PlaceObviousStep<>(i, value));
+            }
+        }
+
+        placeObviousOperation.completeInitialization();
+        if (placeObviousOperation.isDoingNothing()) {
+            return false;
+        }
+        history.addOperation(placeObviousOperation);
+        return true;
+    }
+
+    private boolean computePossibles() {
         System.out.println("Computing possibles...");
 
         ComputePossiblesOperation<ClassicGrid, ClassicCell> computePossiblesOperation = new ComputePossiblesOperation<>(history.getNextOperationID());
@@ -107,8 +157,11 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
         }
 
         computePossiblesOperation.completeInitialization();
+        if (computePossiblesOperation.isDoingNothing()) {
+            return false;
+        }
         history.addOperation(computePossiblesOperation);
-
+        return true;
     }
     
 }

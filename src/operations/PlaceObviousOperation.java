@@ -1,31 +1,29 @@
 package operations;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import grids.AbstractGrid;
 import grids.cells.AbstractCell;
-import operations.steps.RemovePossibleStep;
+import operations.steps.PlaceObviousStep;
 import util.Action;
 import util.ConsoleColors;
 import util.Printer;
 
-public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> extends AbstractOperation<T, K, RemovePossibleStep<T, K>> {
+public class PlaceObviousOperation<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> extends AbstractOperation<T, K, PlaceObviousStep<T, K>> {
 
     private Set<Integer> modifiedIndices;
 
-    public ComputePossiblesOperation(int operationID) {
+    public PlaceObviousOperation(int operationID) {
         super(operationID);
     }
 
     @Override
     public void completeInitialization() {
         modifiedIndices = new HashSet<>();
-        for (RemovePossibleStep<T, K> step : steps) {
+        for (PlaceObviousStep<T, K> step : steps) {
             modifiedIndices.add(step.getCellIndex());
         }
     }
@@ -42,25 +40,6 @@ public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends A
         return s;
     }
 
-    public void printInfo(int index, List<Integer> reasonCells, List<Integer> values, T grid) {
-        K baseCell = grid.get(index);
-        baseCell.setColor(ConsoleColors.YELLOW);
-        for (Integer reasonCell : reasonCells) {
-            grid.get(reasonCell).setColor(ConsoleColors.RED);
-        }
-        System.out.println(grid.toString());
-
-        Set<Integer> possibles = baseCell.getValues();
-        System.out.print("Cell " + grid.getCoordinatesByIndex(index) + " has possible values: ");
-        for (Integer value : possibles) {
-            System.out.print(baseCell.getChar(value) + " ");
-        }
-        for (Integer value : values) {
-            System.out.print(ConsoleColors.RED.getSequence() + baseCell.getChar(value) + ConsoleColors.RESET.getSequence() + " ");
-        }
-        System.out.println("\n");
-    }
-
     @Override
     public Action doSelection(String selection, T grid) {
         if (selection.charAt(0) == '/') {
@@ -71,16 +50,10 @@ public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends A
                 return Action.NOTHING;
             }
             if (modifiedIndices.contains(index)) {
-                List<Integer> reasonCells = new ArrayList<>();
-                List<Integer> values = new ArrayList<>();
-                for (RemovePossibleStep<T, K> step : steps) {
-                    if (step.getCellIndex() == index) {
-                        reasonCells.add(step.getReasonCell());
-                        values.add(step.getValue());
-                    }
-                }
-
-                printInfo(index, reasonCells, values, grid);
+                K baseCell = grid.get(index);
+                baseCell.setColor(ConsoleColors.YELLOW);
+                System.out.println(grid.toString());
+                System.out.println("Cell " + grid.getCoordinatesByIndex(index) + " has possible values: " + baseCell.getValues());
 
                 Printer.getInput();
             }
@@ -101,7 +74,7 @@ public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends A
             }
         }
         System.out.println(grid.toString());
-        System.out.println(this.operationID + ": Possible values recomputed.\n");
+        System.out.println(this.operationID + ": Placed obvious values.\n");
     }
     
 }

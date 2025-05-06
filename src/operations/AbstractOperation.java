@@ -47,4 +47,6 @@ public abstract class AbstractOperation<T extends AbstractGrid<T, K>, K extends 
 
     public abstract void completeInitialization();
 
+    public abstract boolean isDoingNothing();
+
 }
