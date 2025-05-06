@@ -20,6 +20,11 @@ public class InitialCreateOperation<T extends AbstractGrid<T, K>, K extends Abst
     }
 
     @Override
+    public boolean isDoingNothing() {
+        return false;
+    }
+
+    @Override
     public Action doSelection(String selection, T grid) {
         return Action.NOTHING;
     }
