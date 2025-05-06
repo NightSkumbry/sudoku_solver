@@ -10,7 +10,7 @@ public abstract class AbstractCell<K extends AbstractCell<K>> implements Copyabl
 
     protected final char[] possibleValueChars;
     protected Integer valueId;
-    protected Set<Integer> values;
+    protected Set<Integer> possibleValues;
     public final boolean wasPrePlaced;
     private ConsoleColors color;
 
@@ -21,12 +21,12 @@ public abstract class AbstractCell<K extends AbstractCell<K>> implements Copyabl
 
         this.possibleValueChars = possibleValueChars;
         this.valueId = value;
-        this.values = new HashSet<>();
+        this.possibleValues = new HashSet<>();
         this.wasPrePlaced = wasPrePlaced;
 
         if (value == null) {
             for (int i = 0; i < possibleValueChars.length; i++) {
-                this.values.add(i);
+                this.possibleValues.add(i);
             }
         }
     }
@@ -65,8 +65,8 @@ public abstract class AbstractCell<K extends AbstractCell<K>> implements Copyabl
         return valueId;
     }
 
-    public Set<Integer> getValues() {
-        return values;
+    public Set<Integer> getPossibleValues() {
+        return possibleValues;
     }
 
     public boolean isSet() {
@@ -74,7 +74,7 @@ public abstract class AbstractCell<K extends AbstractCell<K>> implements Copyabl
     }
 
     public void setValue(int value) {
-        if (!values.contains(value)) {
+        if (!possibleValues.contains(value)) {
             throw new IllegalArgumentException("Value " + value + " is not in the list of possible values.");
         }
         this.valueId = value;
@@ -85,16 +85,16 @@ public abstract class AbstractCell<K extends AbstractCell<K>> implements Copyabl
     }
 
     public boolean removePossibleValue(int value) {
-        if (values.contains(value)) {
-            values.remove(value);
+        if (possibleValues.contains(value)) {
+            possibleValues.remove(value);
             return true;
         }
         return false;
     }
 
     public boolean addPossibleValue(int value) {
-        if (!values.contains(value) && value >= 0 && value < possibleValueChars.length) {
-            values.add(value);
+        if (!possibleValues.contains(value) && value >= 0 && value < possibleValueChars.length) {
+            possibleValues.add(value);
             return true;
         }
         return false;

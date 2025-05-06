@@ -42,7 +42,7 @@ public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends A
         return s;
     }
 
-    public void printInfo(int index, List<Integer> reasonCells, List<Integer> values, T grid) {
+    private void printInfo(int index, List<Integer> reasonCells, List<Integer> values, T grid) {
         K baseCell = grid.get(index);
         baseCell.setColor(ConsoleColors.YELLOW);
         for (Integer reasonCell : reasonCells) {
@@ -50,8 +50,8 @@ public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends A
         }
         System.out.println(grid.toString());
 
-        Set<Integer> possibles = baseCell.getValues();
-        System.out.print("Cell " + grid.getCoordinatesByIndex(index) + " has possible values: ");
+        Set<Integer> possibles = baseCell.getPossibleValues();
+        System.out.print("Cell " + Printer.colorWith(grid.getCoordinatesByIndex(index), ConsoleColors.YELLOW) + " has possible values: ");
         for (Integer value : possibles) {
             System.out.print(baseCell.getChar(value) + " ");
         }
@@ -63,7 +63,7 @@ public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends A
 
     @Override
     public Action doSelection(String selection, T grid) {
-        if (selection.charAt(0) == '/') {
+        if (selection.length() > 0 && selection.charAt(0) == '/') {
             selection = selection.substring(1);
             Integer index = grid.getIndexByCoordinates(selection);
             if (index == null) {

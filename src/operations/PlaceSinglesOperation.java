@@ -7,23 +7,23 @@ import java.util.Set;
 
 import grids.AbstractGrid;
 import grids.cells.AbstractCell;
-import operations.steps.PlaceObviousStep;
+import operations.steps.SingleInStep;
 import util.Action;
 import util.ConsoleColors;
 import util.Printer;
 
-public class PlaceObviousOperation<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> extends AbstractOperation<T, K, PlaceObviousStep<T, K>> {
+public class PlaceSinglesOperation<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> extends AbstractOperation<T, K, SingleInStep<T, K>> {
 
     private Set<Integer> modifiedIndices;
 
-    public PlaceObviousOperation(int operationID) {
+    public PlaceSinglesOperation(int operationID) {
         super(operationID);
     }
 
     @Override
     public void completeInitialization() {
         modifiedIndices = new HashSet<>();
-        for (PlaceObviousStep<T, K> step : steps) {
+        for (SingleInStep<T, K> step : steps) {
             modifiedIndices.add(step.getCellIndex());
         }
     }
@@ -42,7 +42,7 @@ public class PlaceObviousOperation<T extends AbstractGrid<T, K>, K extends Abstr
 
     @Override
     public Action doSelection(String selection, T grid) {
-        if (selection.length() > 0 && selection.length() > 0 && selection.charAt(0) == '/') {
+        if (selection.length() > 0 && selection.charAt(0) == '/') {
             selection = selection.substring(1);
             Integer index = grid.getIndexByCoordinates(selection);
             if (index == null) {
@@ -52,13 +52,30 @@ public class PlaceObviousOperation<T extends AbstractGrid<T, K>, K extends Abstr
             if (modifiedIndices.contains(index)) {
                 K baseCell = grid.get(index);
                 baseCell.setColor(ConsoleColors.YELLOW);
+                SingleInStep<T, K> step = steps.stream().filter(s -> s.getCellIndex() == index).findFirst().orElse(null);
+                if (step == null) {
+                    System.out.println("No step found for cell " + selection + ".");
+                    return Action.NOTHING;
+                }
+                for (Integer reasonCell : step.getReasonCellIndices()) {
+                    grid.get(reasonCell).setColor(ConsoleColors.RED);
+                }
+
                 System.out.println(grid.toString());
                 System.out.print("Cell " + Printer.colorWith(grid.getCoordinatesByIndex(index), ConsoleColors.YELLOW) + " has possible values: ");
                 for (Integer value : baseCell.getPossibleValues()) {
-                    if (value == baseCell.getValue()) System.out.print(Printer.colorWith("" + baseCell.getChar(value), ConsoleColors.GREEN) + " ");
+                    if (value == step.getValue()) System.out.print(Printer.colorWith("" + baseCell.getChar(value), ConsoleColors.GREEN) + " ");
                     else System.out.print(baseCell.getChar(value) + " ");
                 }
-                System.out.println("");
+                System.out.println("\n");
+                step.getReasonCellIndices().forEach(reasonIndex -> {
+                    K reasonCell = grid.get(reasonIndex);
+                    System.out.print("Reason cell " + Printer.colorWith(grid.getCoordinatesByIndex(reasonIndex), ConsoleColors.RED) + " has possible values: ");
+                    reasonCell.getPossibleValues().forEach(value -> {
+                        System.out.print(reasonCell.getChar(value) + " ");
+                    });
+                    System.out.println("");
+                });
 
                 Printer.getInput();
             }
@@ -79,7 +96,7 @@ public class PlaceObviousOperation<T extends AbstractGrid<T, K>, K extends Abstr
             }
         }
         System.out.println(grid.toString());
-        System.out.println(this.operationID + ": Placed obvious values.\n");
+        System.out.println(this.operationID + ": Placed single values.\n");
     }
     
 }

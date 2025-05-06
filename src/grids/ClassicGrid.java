@@ -174,7 +174,7 @@ public class ClassicGrid extends AbstractGrid<ClassicGrid, ClassicCell> implemen
                 }
             }
             else {
-                availableValues.addAll(cell.getValues());
+                availableValues.addAll(cell.getPossibleValues());
             }
         }
 

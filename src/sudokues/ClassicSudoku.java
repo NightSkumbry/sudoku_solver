@@ -1,5 +1,6 @@
 package sudokues;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -8,8 +9,10 @@ import grids.ClassicGrid;
 import grids.cells.ClassicCell;
 import operations.ComputePossiblesOperation;
 import operations.PlaceObviousOperation;
+import operations.PlaceSinglesOperation;
 import operations.steps.PlaceObviousStep;
 import operations.steps.RemovePossibleStep;
+import operations.steps.SingleInStep;
 
 public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
     public ClassicSudoku(List<Integer> grid) {
@@ -27,6 +30,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
             boolean flag = false;
             flag |= computePossibles();
             flag |= placeObvious();
+            flag |= placeSingles();
 
             if (!flag) {
                 break;
@@ -53,6 +57,101 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
     }
 
 
+    private boolean placeSingles() {
+        System.out.println("Placing singles...");
+
+        PlaceSinglesOperation<ClassicGrid, ClassicCell> placeSinglesOperation = new PlaceSinglesOperation<>(history.getNextOperationID());    
+        
+        // check rows
+        for (int row = 0; row < 9; row++) {
+            List<ClassicCell> rowCells = currentGrid.getRow(row);
+            for (int n = 0; n < 9; n++) {
+                Set<Integer> possiblePlaces = new HashSet<>();
+                for (int k = 0; k < 9; k++) {
+                    ClassicCell cell = rowCells.get(k);
+                    if (!cell.isSet() && cell.getPossibleValues().contains(n)) {
+                        possiblePlaces.add(k);
+                    }
+                }
+                if (possiblePlaces.size() == 1) {
+                    int cellIndex = possiblePlaces.iterator().next();
+                    ClassicCell cell = rowCells.get(cellIndex);
+                    cell.setValue(n);
+                    List<Integer> emptyIndices = new ArrayList<>();
+                    for (int i = 0; i < 9; i++) {
+                        ClassicCell c = rowCells.get(i);
+                        if (!c.isSet()) {
+                            emptyIndices.add(currentGrid.getIndexByRowIndex(row, i));
+                        }
+                    }
+                    placeSinglesOperation.addStep(new SingleInStep<>(currentGrid.getIndexByRowIndex(row, cellIndex), n, emptyIndices));
+                }
+            }
+            
+        }
+
+        // check columns
+        for (int column = 0; column < 9; column++) {
+            List<ClassicCell> columnCells = currentGrid.getColumn(column);
+            for (int n = 0; n < 9; n++) {
+                Set<Integer> possiblePlaces = new HashSet<>();
+                for (int k = 0; k < 9; k++) {
+                    ClassicCell cell = columnCells.get(k);
+                    if (!cell.isSet() && cell.getPossibleValues().contains(n)) {
+                        possiblePlaces.add(k);
+                    }
+                }
+                if (possiblePlaces.size() == 1) {
+                    int cellIndex = possiblePlaces.iterator().next();
+                    ClassicCell cell = columnCells.get(cellIndex);
+                    cell.setValue(n);
+                    List<Integer> emptyIndices = new ArrayList<>();
+                    for (int i = 0; i < 9; i++) {
+                        ClassicCell c = columnCells.get(i);
+                        if (!c.isSet()) {
+                            emptyIndices.add(currentGrid.getIndexByColumnIndex(column, i));
+                        }
+                    }
+                    placeSinglesOperation.addStep(new SingleInStep<>(currentGrid.getIndexByColumnIndex(column, cellIndex), n, emptyIndices));
+                }
+            }
+        }
+
+        // check boxes
+        for (int box = 0; box < 9; box++) {
+            List<ClassicCell> boxCells = currentGrid.getBox(box);
+            for (int n = 0; n < 9; n++) {
+                Set<Integer> possiblePlaces = new HashSet<>();
+                for (int k = 0; k < 9; k++) {
+                    ClassicCell cell = boxCells.get(k);
+                    if (!cell.isSet() && cell.getPossibleValues().contains(n)) {
+                        possiblePlaces.add(k);
+                    }
+                }
+                if (possiblePlaces.size() == 1) {
+                    int cellIndex = possiblePlaces.iterator().next();
+                    ClassicCell cell = boxCells.get(cellIndex);
+                    cell.setValue(n);
+                    List<Integer> emptyIndices = new ArrayList<>();
+                    for (int i = 0; i < 9; i++) {
+                        ClassicCell c = boxCells.get(i);
+                        if (!c.isSet()) {
+                            emptyIndices.add(currentGrid.getIndexByBoxIndex(box, i));
+                        }
+                    }
+                    placeSinglesOperation.addStep(new SingleInStep<>(currentGrid.getIndexByBoxIndex(box, cellIndex), n, emptyIndices));
+                }
+            }
+        }
+
+        placeSinglesOperation.completeInitialization();
+        if (placeSinglesOperation.isDoingNothing()) {
+            return false;
+        }
+        history.addOperation(placeSinglesOperation);
+        return true;
+    }
+
     private boolean placeObvious() {
         System.out.println("Placing obvious values...");
 
@@ -63,7 +162,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
             if (cell.isSet()) {
                 continue;
             }
-            Set<Integer> possibles = cell.getValues();
+            Set<Integer> possibles = cell.getPossibleValues();
             if (possibles.size() == 1) {
                 Integer value = possibles.iterator().next();
                 cell.setValue(value);

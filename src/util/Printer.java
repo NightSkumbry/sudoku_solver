@@ -16,4 +16,8 @@ public class Printer {
         System.out.print("\n-> ");
         return scanner.nextLine();
     }
+
+    public static String colorWith(String text, ConsoleColors color) {
+        return color.getSequence() + text + ConsoleColors.RESET.getSequence();
+    }
 }
