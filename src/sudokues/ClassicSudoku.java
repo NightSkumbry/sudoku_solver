@@ -26,15 +26,16 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
             System.out.println("Grid is already fully solved.");
             return;
         }
-        while (true) { 
-            boolean flag = false;
-            flag |= computePossibles();
-            flag |= placeObvious();
-            flag |= placeSingles();
+        while (true) {
+            this.currentGrid = bufferGrid.copy();
+            computePossibles();
+            this.bufferGrid = currentGrid.copy();
+            
+            if (placeObvious()) continue;
 
-            if (!flag) {
-                break;
-            }
+            if (placeSingles()) continue;
+
+            break;
         }
 
         if (isFull()) {
@@ -65,6 +66,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
         // check rows
         for (int row = 0; row < 9; row++) {
             List<ClassicCell> rowCells = currentGrid.getRow(row);
+            List<ClassicCell> bufferRowCells = bufferGrid.getRow(row);
             for (int n = 0; n < 9; n++) {
                 Set<Integer> possiblePlaces = new HashSet<>();
                 for (int k = 0; k < 9; k++) {
@@ -75,8 +77,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
                 }
                 if (possiblePlaces.size() == 1) {
                     int cellIndex = possiblePlaces.iterator().next();
-                    ClassicCell cell = rowCells.get(cellIndex);
-                    cell.setValue(n);
+                    bufferRowCells.get(cellIndex).setValue(n);
                     List<Integer> emptyIndices = new ArrayList<>();
                     for (int i = 0; i < 9; i++) {
                         ClassicCell c = rowCells.get(i);
@@ -93,6 +94,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
         // check columns
         for (int column = 0; column < 9; column++) {
             List<ClassicCell> columnCells = currentGrid.getColumn(column);
+            List<ClassicCell> bufferColumnCells = bufferGrid.getColumn(column);
             for (int n = 0; n < 9; n++) {
                 Set<Integer> possiblePlaces = new HashSet<>();
                 for (int k = 0; k < 9; k++) {
@@ -103,8 +105,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
                 }
                 if (possiblePlaces.size() == 1) {
                     int cellIndex = possiblePlaces.iterator().next();
-                    ClassicCell cell = columnCells.get(cellIndex);
-                    cell.setValue(n);
+                    bufferColumnCells.get(cellIndex).setValue(n);
                     List<Integer> emptyIndices = new ArrayList<>();
                     for (int i = 0; i < 9; i++) {
                         ClassicCell c = columnCells.get(i);
@@ -120,6 +121,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
         // check boxes
         for (int box = 0; box < 9; box++) {
             List<ClassicCell> boxCells = currentGrid.getBox(box);
+            List<ClassicCell> bufferBoxCells = bufferGrid.getBox(box);
             for (int n = 0; n < 9; n++) {
                 Set<Integer> possiblePlaces = new HashSet<>();
                 for (int k = 0; k < 9; k++) {
@@ -130,8 +132,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
                 }
                 if (possiblePlaces.size() == 1) {
                     int cellIndex = possiblePlaces.iterator().next();
-                    ClassicCell cell = boxCells.get(cellIndex);
-                    cell.setValue(n);
+                    bufferBoxCells.get(cellIndex).setValue(n);
                     List<Integer> emptyIndices = new ArrayList<>();
                     for (int i = 0; i < 9; i++) {
                         ClassicCell c = boxCells.get(i);
@@ -165,7 +166,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
             Set<Integer> possibles = cell.getPossibleValues();
             if (possibles.size() == 1) {
                 Integer value = possibles.iterator().next();
-                cell.setValue(value);
+                bufferGrid.get(i).setValue(value);
                 placeObviousOperation.addStep(new PlaceObviousStep<>(i, value));
             }
         }

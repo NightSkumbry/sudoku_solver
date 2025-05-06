@@ -1,9 +1,12 @@
 package grids.cells;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ClassicCell extends AbstractCell<ClassicCell> {
 
-    protected ClassicCell(Integer value, boolean wasPrePlaced) {
-        super(new char[]{'1', '2', '3', '4', '5', '6', '7', '8', '9'}, value, wasPrePlaced);
+    protected ClassicCell(Integer value, boolean wasPrePlaced, Set<Integer> possibles) {
+        super(new char[]{'1', '2', '3', '4', '5', '6', '7', '8', '9'}, value, wasPrePlaced, possibles);
     }
 
     public ClassicCell(Integer value) {
@@ -16,7 +19,7 @@ public class ClassicCell extends AbstractCell<ClassicCell> {
 
     @Override
     public ClassicCell copy() {
-        return new ClassicCell(this.valueId, this.wasPrePlaced);
+        return new ClassicCell(this.valueId, this.wasPrePlaced, new HashSet<>(this.possibleValues));
     }
     
 }

@@ -14,6 +14,13 @@ public abstract class AbstractCell<K extends AbstractCell<K>> implements Copyabl
     public final boolean wasPrePlaced;
     private ConsoleColors color;
 
+
+    protected AbstractCell(char[] possibleValueChars, Integer value, boolean wasPrePlaced, Set<Integer> possibles) {
+        this(possibleValueChars, value, wasPrePlaced);
+        this.possibleValues = possibles;
+    }
+
+
     protected AbstractCell(char[] possibleValueChars, Integer value, boolean wasPrePlaced) {
         if (value != null && (value < 0 || value >= possibleValueChars.length)) {
             throw new IllegalArgumentException("Value " + value + " is not in the list of possible values.");

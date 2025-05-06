@@ -21,6 +21,7 @@ public abstract class AbstractSudoku<T extends AbstractGrid<T, K>, K extends Abs
     protected boolean fullySolved;
     protected boolean isValid;
     protected History<T, K> history;
+    protected T bufferGrid;
 
     public AbstractSudoku(T grid) {
         this.baseGrid = grid;
@@ -33,6 +34,7 @@ public abstract class AbstractSudoku<T extends AbstractGrid<T, K>, K extends Abs
         this.fullySolved = grid.isFull() && grid.isValid();
         this.isValid = grid.isValid();
         this.history = new History<> (grid.copy());
+        this.bufferGrid = grid.copy();
     }
 
     @Override
