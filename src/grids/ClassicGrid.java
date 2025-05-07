@@ -59,8 +59,8 @@ public class ClassicGrid extends AbstractGrid<ClassicGrid, ClassicCell> implemen
     public Integer getIndexByCoordinates(String coordinates) {
         try {
             String[] parts = coordinates.split(" ");
-            int x = Integer.parseInt(parts[0]);
-            int y = Integer.parseInt(parts[1]);
+            int x = Integer.parseInt(parts[0]) - 1;
+            int y = Integer.parseInt(parts[1]) - 1;
             return y * 9 + x;
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             return null; // Invalid coordinates
@@ -69,7 +69,7 @@ public class ClassicGrid extends AbstractGrid<ClassicGrid, ClassicCell> implemen
 
     @Override
     public String getCoordinatesByIndex(int index) {
-        return (index % 9) + " " + (index / 9);
+        return (index % 9+1) + " " + (index / 9 + 1);
     }
 
     @Override
