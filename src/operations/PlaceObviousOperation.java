@@ -70,7 +70,7 @@ public class PlaceObviousOperation<T extends AbstractGrid<T, K>, K extends Abstr
     }
 
     @Override
-    public void printGrid(T grid) {
+    public void printGrid(T grid, int historySize) {
 
         for (Integer index : modifiedIndices) {
             K cell = grid.get(index);
@@ -79,7 +79,7 @@ public class PlaceObviousOperation<T extends AbstractGrid<T, K>, K extends Abstr
             }
         }
         System.out.println(grid.toString());
-        System.out.println(this.operationID + ": Placed obvious values.\n");
+        System.out.println(this.operationID + "/" + historySize + ": Placed obvious values.\n");
     }
     
 }

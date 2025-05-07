@@ -43,7 +43,7 @@ public abstract class AbstractOperation<T extends AbstractGrid<T, K>, K extends 
 
     public abstract Action doSelection(String selection, T grid);
 
-    public abstract void printGrid(T grid);
+    public abstract void printGrid(T grid, int historySize);
 
     public abstract void completeInitialization();
 

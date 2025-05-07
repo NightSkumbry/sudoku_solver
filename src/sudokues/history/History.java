@@ -32,7 +32,7 @@ public class History<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> {
     }
 
     public void printGrid() {
-        history.get(currentIndex).printGrid(grid);
+        history.get(currentIndex).printGrid(grid, history.size() - 1);
     }
 
     public void moveBack() {

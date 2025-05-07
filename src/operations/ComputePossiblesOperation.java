@@ -92,7 +92,7 @@ public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends A
     }
 
     @Override
-    public void printGrid(T grid) {
+    public void printGrid(T grid, int historySize) {
 
         for (Integer index : modifiedIndices) {
             K cell = grid.get(index);
@@ -101,7 +101,7 @@ public class ComputePossiblesOperation<T extends AbstractGrid<T, K>, K extends A
             }
         }
         System.out.println(grid.toString());
-        System.out.println(this.operationID + ": Possible values recomputed.\n");
+        System.out.println(this.operationID + "/" + historySize + ": Possible values recomputed.\n");
     }
     
 }

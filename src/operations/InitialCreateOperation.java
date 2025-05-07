@@ -30,9 +30,9 @@ public class InitialCreateOperation<T extends AbstractGrid<T, K>, K extends Abst
     }
 
     @Override
-    public void printGrid(T grid) {
+    public void printGrid(T grid, int historySize) {
         System.out.println(grid.toString());
-        System.out.println(this.operationID + ": Grid initialized.\n");
+        System.out.println(this.operationID + "/" + historySize + ": Grid initialized.\n");
     }
 
     @Override

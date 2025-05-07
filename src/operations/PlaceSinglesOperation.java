@@ -51,7 +51,6 @@ public class PlaceSinglesOperation<T extends AbstractGrid<T, K>, K extends Abstr
             }
             if (modifiedIndices.contains(index)) {
                 K baseCell = grid.get(index);
-                baseCell.setColor(ConsoleColors.YELLOW);
                 SingleInStep<T, K> step = steps.stream().filter(s -> s.getCellIndex() == index).findFirst().orElse(null);
                 if (step == null) {
                     System.out.println("No step found for cell " + selection + ".");
@@ -60,6 +59,7 @@ public class PlaceSinglesOperation<T extends AbstractGrid<T, K>, K extends Abstr
                 for (Integer reasonCell : step.getReasonCellIndices()) {
                     grid.get(reasonCell).setColor(ConsoleColors.RED);
                 }
+                baseCell.setColor(ConsoleColors.YELLOW);
 
                 System.out.println(grid.toString());
                 System.out.print("Cell " + Printer.colorWith(grid.getCoordinatesByIndex(index), ConsoleColors.YELLOW) + " has possible values: ");
@@ -87,7 +87,7 @@ public class PlaceSinglesOperation<T extends AbstractGrid<T, K>, K extends Abstr
     }
 
     @Override
-    public void printGrid(T grid) {
+    public void printGrid(T grid, int historySize) {
 
         for (Integer index : modifiedIndices) {
             K cell = grid.get(index);
@@ -96,7 +96,7 @@ public class PlaceSinglesOperation<T extends AbstractGrid<T, K>, K extends Abstr
             }
         }
         System.out.println(grid.toString());
-        System.out.println(this.operationID + ": Placed single values.\n");
+        System.out.println(this.operationID + "/" + historySize + ": Placed single values.\n");
     }
     
 }
