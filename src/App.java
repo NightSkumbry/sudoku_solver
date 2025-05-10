@@ -1,6 +1,9 @@
 import util.Action;
 import util.ProgramState;
 
+// TODO: history by cell changes
+// TODO: statistics of used operations
+
 public class App {
     public static void main(String[] args) throws Exception {
         printWelcomeMessage();

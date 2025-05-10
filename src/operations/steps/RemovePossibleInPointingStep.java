@@ -5,14 +5,14 @@ import java.util.List;
 import grids.AbstractGrid;
 import grids.cells.AbstractCell;
 
-public class RemovePointingStep<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> extends AbstractOperationStep<T, K> {
+public class RemovePossibleInPointingStep<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> extends AbstractOperationStep<T, K> {
     private int cellIndex;
     private int value;
     private List<Integer> reasonCellIndices;
     private List<Integer> pointingCellIndices;
     private List<Integer> toPurpleCellIndices;
 
-    public RemovePointingStep(int cellIndex, int value, List<Integer> reasonCellIndices, List<Integer> pointingCellIndices, List<Integer> toPurpleCellIndices) {
+    public RemovePossibleInPointingStep(int cellIndex, int value, List<Integer> reasonCellIndices, List<Integer> pointingCellIndices, List<Integer> toPurpleCellIndices) {
         this.toPurpleCellIndices = toPurpleCellIndices;
         this.pointingCellIndices = pointingCellIndices;
         this.reasonCellIndices = reasonCellIndices;

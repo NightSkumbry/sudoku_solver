@@ -8,23 +8,23 @@ import java.util.Set;
 
 import grids.AbstractGrid;
 import grids.cells.AbstractCell;
-import operations.steps.RemovePossibleInPointingStep;
+import operations.steps.RemovePossibleHGroupStep;
 import util.Action;
 import util.ConsoleColors;
 import util.Printer;
 
-public class RemovePointingOperation<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> extends AbstractOperation<T, K, RemovePossibleInPointingStep<T, K>> {
+public class RemoveInHGroupsOperation<T extends AbstractGrid<T, K>, K extends AbstractCell<K>> extends AbstractOperation<T, K, RemovePossibleHGroupStep<T, K>> {
 
     private Set<Integer> modifiedIndices;
 
-    public RemovePointingOperation(int operationID) {
+    public RemoveInHGroupsOperation(int operationID) {
         super(operationID);
     }
 
     @Override
     public void completeInitialization() {
         modifiedIndices = new HashSet<>();
-        for (RemovePossibleInPointingStep<T, K> step : steps) {
+        for (RemovePossibleHGroupStep<T, K> step : steps) {
             modifiedIndices.add(step.getCellIndex());
         }
     }
@@ -55,55 +55,56 @@ public class RemovePointingOperation<T extends AbstractGrid<T, K>, K extends Abs
                 K baseCell = grid.get(index);
                 
 
-                for (RemovePossibleInPointingStep<T, K> step : steps) {
+                for (RemovePossibleHGroupStep<T, K> step : steps) {
                     if (step.getCellIndex() == index) {
                         
+                        List<Integer> groupCellIndices = step.getGroupCellIndices();
+                        groupCellIndices.forEach(groupCellIndex -> {
+                            grid.get(groupCellIndex).setColor(ConsoleColors.GREEN);
+                        });
+                        List<Integer> nonGroupCellIndices = step.getNonGroupCellIndices();
+                        nonGroupCellIndices.forEach(nonGroupCellIndex -> {
+                            grid.get(nonGroupCellIndex).setColor(ConsoleColors.RED);
+                        });
+                        List<Integer> toPurple = step.getToPurple();
+                        toPurple.forEach(toPurpleIndex -> {
+                            grid.get(toPurpleIndex).setColor(ConsoleColors.PURPLE);
+                        });
                         baseCell.setColor(ConsoleColors.YELLOW);
-                        List<Integer> reasonCellIndices = step.getReasonCellIndices();
-                        reasonCellIndices.forEach(nullCellIndex -> {
-                            grid.get(nullCellIndex).setColor(ConsoleColors.RED);
-                        });
-                        List<Integer> pointingCellIndices = step.getPointingCellIndices();
-                        pointingCellIndices.forEach(pointingCellIndex -> {
-                            grid.get(pointingCellIndex).setColor(ConsoleColors.GREEN);
-                        });
-                        List<Integer> toPurpleCellIndices = step.getToPurpleCellIndices();
-                        toPurpleCellIndices.forEach(toPurpleCellIndex -> {
-                            grid.get(toPurpleCellIndex).setColor(ConsoleColors.PURPLE);
-                        });
-                        
                         System.out.println(grid.toString());
                         
-                        System.out.println("Value " + Printer.colorWith(""+baseCell.getChar(step.getValue()), ConsoleColors.RED) + " was removed because of pointing cells:\n");
+                        Set<Integer> groupValues = new HashSet<>();
+                        groupCellIndices.forEach(cellIndex -> {
+                            K cell = grid.get(cellIndex);
+                            groupValues.addAll(cell.getPossibleValues());
+                        });
 
-                        reasonCellIndices.forEach(reasonCellIndex -> {
+                        System.out.print("Values ");
+                        groupValues.forEach(value -> {
+                            System.out.print(Printer.colorWith(""+baseCell.getChar(value), ConsoleColors.YELLOW) + " ");
+                        });
+                        System.out.println("can only be in group cells, so no other values are allowed\n");
+                        
+                        groupCellIndices.forEach(reasonCellIndex -> {
                             K reasonCell = grid.get(reasonCellIndex);
-                            System.out.print("Cell " + Printer.colorWith(grid.getCoordinatesByIndex(reasonCellIndex), ConsoleColors.RED) + " has possible values: ");
+                            System.out.print("Group cell " + Printer.colorWith(grid.getCoordinatesByIndex(reasonCellIndex), ConsoleColors.GREEN) + " has possible values: ");
                             for (Integer value : reasonCell.getPossibleValues()) {
                                 System.out.print(reasonCell.getChar(value) + " ");
                             }
                             System.out.println("");
                         });
-                        pointingCellIndices.forEach(pointingCellIndex -> {
+                        nonGroupCellIndices.forEach(pointingCellIndex -> {
                             K pointingCell = grid.get(pointingCellIndex);
-                            System.out.print("Cell " + Printer.colorWith(grid.getCoordinatesByIndex(pointingCellIndex), ConsoleColors.GREEN) + " has possible values: ");
+                            System.out.print("Non group cell " + Printer.colorWith(grid.getCoordinatesByIndex(pointingCellIndex), ConsoleColors.RED) + " has possible values: ");
                             for (Integer value : pointingCell.getPossibleValues()) {
-                                if (value == step.getValue()) {
-                                    System.out.print(Printer.colorWith("" + pointingCell.getChar(value), ConsoleColors.GREEN) + " ");
-                                }
-                                else {
-                                    System.out.print(pointingCell.getChar(value) + " ");
-                                }
+                                System.out.print(Printer.colorWith("" + pointingCell.getChar(value), ConsoleColors.RED) + " ");
                             }
                             System.out.println("");
                         });
                         System.out.println("=>");
-
-                        System.out.print("Cell " + Printer.colorWith(grid.getCoordinatesByIndex(index), ConsoleColors.YELLOW) + " has possible values: ");
-                        System.out.print(Printer.colorWith("" + baseCell.getChar(step.getValue()), ConsoleColors.RED) + " ");
-                        for (Integer value : baseCell.getPossibleValues()) {
-                            System.out.print(baseCell.getChar(value) + " ");
-                        }
+                        
+                        System.out.print("Value " + Printer.colorWith(""+baseCell.getChar(step.getValue()), ConsoleColors.RED) + " was removed from cell ");
+                        System.out.println(Printer.colorWith(grid.getCoordinatesByIndex(step.getCellIndex()), ConsoleColors.YELLOW));
                         System.out.println("");
                         Printer.getInput();
                     }
@@ -126,7 +127,7 @@ public class RemovePointingOperation<T extends AbstractGrid<T, K>, K extends Abs
             }
         }
         System.out.println(grid.toString());
-        System.out.println(this.operationID + "/" + historySize + ": Reduced possible values dew to pointing cells.\n");
+        System.out.println(this.operationID + "/" + historySize + ": Reduced possible values in hidden groups.\n");
     }
     
 }

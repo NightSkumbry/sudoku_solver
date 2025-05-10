@@ -1,5 +1,7 @@
 package sudokues;
 
+import com.google.common.collect.Sets;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -10,11 +12,16 @@ import grids.cells.ClassicCell;
 import operations.ComputePossiblesOperation;
 import operations.PlaceObviousOperation;
 import operations.PlaceSinglesOperation;
+import operations.RemoveInHGroupsOperation;
+import operations.RemoveOutsideHGroupsOperation;
 import operations.RemovePointingOperation;
 import operations.steps.PlaceObviousStep;
-import operations.steps.RemovePointingStep;
+import operations.steps.RemovePossibleHGroupStep;
+import operations.steps.RemovePossibleInPointingStep;
 import operations.steps.RemovePossibleStep;
 import operations.steps.SingleInStep;
+import util.ConsoleColors;
+import util.Printer;
 
 public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
     public ClassicSudoku(List<Integer> grid) {
@@ -29,15 +36,22 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
             return;
         }
         while (true) {
+            
             this.currentGrid = bufferGrid.copy();
+            if (!this.currentGrid.isValid()) {
+                System.out.println(Printer.colorWith("Grid is not valid right now!.", ConsoleColors.RED));
+                break;
+            }
             computePossibles();
             this.bufferGrid = currentGrid.copy();
             
+            if (placeSingles()) continue;
+            
             if (placeObvious()) continue;
 
-            if (placeSingles()) continue;
-
             if (computePointingValues()) continue;
+
+            if (computeHGroups()) continue;
 
             break;
         }
@@ -61,6 +75,297 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
         }
     }
 
+
+    private boolean computeHGroups() {
+        if (computeInHGroups(2)) return true; // H - means hidden
+
+        if (computeOutsideHGroups(2)) return true;
+
+        if (computeInHGroups(3)) return true; // H - means hidden
+
+        if (computeOutsideHGroups(3)) return true;
+
+        if (computeInHGroups(4)) return true; // H - means hidden
+
+        if (computeOutsideHGroups(4)) return true;
+
+        return false;
+    }
+
+    private boolean computeInHGroups(int groupSize) {
+        System.out.println("Computing inside groups of size " + groupSize);
+
+        RemoveInHGroupsOperation<ClassicGrid, ClassicCell> removeInHGroupsOperation = new RemoveInHGroupsOperation<>(history.getNextOperationID());
+
+        // check rows
+        for (int row = 0; row < 9; row++) {
+            List<ClassicCell> rowCells = currentGrid.getRow(row);
+            Set<Integer> rowPossibleValues = new HashSet<>();
+            rowCells.forEach(rowCell -> {
+                if (!rowCell.isSet()) rowPossibleValues.addAll(rowCell.getPossibleValues());
+            });
+            if (rowPossibleValues.size() <= groupSize) continue;
+            for (Set<Integer> valueCombination : Sets.combinations(rowPossibleValues, groupSize)) {
+                List<Integer> possibleCellIndices = new ArrayList<>();
+                for (int rowCellIndex = 0; rowCellIndex < 9; rowCellIndex++) {
+                    for (int v : valueCombination) {
+                        if (rowCells.get(rowCellIndex).getPossibleValues().contains(v)) {
+                            possibleCellIndices.add(rowCellIndex);
+                            break;
+                        }
+                    }
+                }
+                
+                if (possibleCellIndices.size() <= valueCombination.size()) {
+                    for (int rowCellIndex = 0; rowCellIndex < 9; rowCellIndex++) {
+                        ClassicCell cell = rowCells.get(rowCellIndex);
+                        if (cell.isSet() || !possibleCellIndices.contains(rowCellIndex)) continue;
+                        for (int i = 0; i < 9; i++) {
+                            if (valueCombination.contains(i)) continue;
+                            int fullCellIndex = currentGrid.getIndexByRowIndex(row, rowCellIndex);
+                            boolean r = bufferGrid.get(fullCellIndex).removePossibleValue(i);
+                            if (r) {
+                                List<Integer> groupIndices = new ArrayList<>();
+                                List<Integer> nonGroupIndices = new ArrayList<>();
+                                List<Integer> toPurple = new ArrayList<>();
+                                for (int rcl = 0; rcl < 9; rcl++) {
+                                    if (possibleCellIndices.contains(rcl)) groupIndices.add(currentGrid.getIndexByRowIndex(row, rcl));
+                                    else if (!rowCells.get(rcl).isSet()) nonGroupIndices.add(currentGrid.getIndexByRowIndex(row, rcl));
+                                    else toPurple.add(currentGrid.getIndexByRowIndex(row, rcl));
+                                }
+                                removeInHGroupsOperation.addStep(new RemovePossibleHGroupStep<>(fullCellIndex, i, groupIndices, nonGroupIndices, toPurple));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // check columns
+        for (int column = 0; column < 9; column++) {
+            List<ClassicCell> columnCells = currentGrid.getColumn(column);
+            Set<Integer> columnPossibleValues = new HashSet<>();
+            columnCells.forEach(columnCell -> {
+                if (!columnCell.isSet()) columnPossibleValues.addAll(columnCell.getPossibleValues());
+            });
+            if (columnPossibleValues.size() <= groupSize) continue;
+            for (Set<Integer> valueCombination : Sets.combinations(columnPossibleValues, groupSize)) {
+                List<Integer> possibleCellIndices = new ArrayList<>();
+                for (int columnCellIndex = 0; columnCellIndex < 9; columnCellIndex++) {
+                    for (int v : valueCombination) {
+                        if (columnCells.get(columnCellIndex).getPossibleValues().contains(v)) {
+                            possibleCellIndices.add(columnCellIndex);
+                            break;
+                        }
+                    }
+                }
+                
+                if (possibleCellIndices.size() <= valueCombination.size()) {
+                    for (int columnCellIndex = 0; columnCellIndex < 9; columnCellIndex++) {
+                        ClassicCell cell = columnCells.get(columnCellIndex);
+                        if (cell.isSet() || !possibleCellIndices.contains(columnCellIndex)) continue;
+                        for (int i = 0; i < 9; i++) {
+                            if (valueCombination.contains(i)) continue;
+                            int fullCellIndex = currentGrid.getIndexByColumnIndex(column, columnCellIndex);
+                            boolean r = bufferGrid.get(fullCellIndex).removePossibleValue(i);
+                            if (r) {
+                                List<Integer> groupIndices = new ArrayList<>();
+                                List<Integer> nonGroupIndices = new ArrayList<>();
+                                List<Integer> toPurple = new ArrayList<>();
+                                for (int rcl = 0; rcl < 9; rcl++) {
+                                    if (possibleCellIndices.contains(rcl)) groupIndices.add(currentGrid.getIndexByColumnIndex(column, rcl));
+                                    else if (!columnCells.get(rcl).isSet()) nonGroupIndices.add(currentGrid.getIndexByColumnIndex(column, rcl));
+                                    else toPurple.add(currentGrid.getIndexByColumnIndex(column, rcl));
+                                }
+                                removeInHGroupsOperation.addStep(new RemovePossibleHGroupStep<>(fullCellIndex, i, groupIndices, nonGroupIndices, toPurple));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // check boxes
+        for (int box = 0; box < 9; box++) {
+            List<ClassicCell> boxCells = currentGrid.getBox(box);
+            Set<Integer> boxPossibleValues = new HashSet<>();
+            boxCells.forEach(boxCell -> {
+                if (!boxCell.isSet()) boxPossibleValues.addAll(boxCell.getPossibleValues());
+            });
+            if (boxPossibleValues.size() <= groupSize) continue;
+            for (Set<Integer> valueCombination : Sets.combinations(boxPossibleValues, groupSize)) {
+                List<Integer> possibleCellIndices = new ArrayList<>();
+                for (int boxCellIndex = 0; boxCellIndex < 9; boxCellIndex++) {
+                    for (int v : valueCombination) {
+                        if (boxCells.get(boxCellIndex).getPossibleValues().contains(v)) {
+                            possibleCellIndices.add(boxCellIndex);
+                            break;
+                        }
+                    }
+                }
+                
+                if (possibleCellIndices.size() <= valueCombination.size()) {
+                    for (int boxCellIndex = 0; boxCellIndex < 9; boxCellIndex++) {
+                        ClassicCell cell = boxCells.get(boxCellIndex);
+                        if (cell.isSet() || !possibleCellIndices.contains(boxCellIndex)) continue;
+                        for (int i = 0; i < 9; i++) {
+                            if (valueCombination.contains(i)) continue;
+                            int fullCellIndex = currentGrid.getIndexByBoxIndex(box, boxCellIndex);
+                            boolean r = bufferGrid.get(fullCellIndex).removePossibleValue(i);
+                            if (r) {
+                                List<Integer> groupIndices = new ArrayList<>();
+                                List<Integer> nonGroupIndices = new ArrayList<>();
+                                List<Integer> toPurple = new ArrayList<>();
+                                for (int rcl = 0; rcl < 9; rcl++) {
+                                    if (possibleCellIndices.contains(rcl)) groupIndices.add(currentGrid.getIndexByBoxIndex(box, rcl));
+                                    else if (!boxCells.get(rcl).isSet()) nonGroupIndices.add(currentGrid.getIndexByBoxIndex(box, rcl));
+                                    else toPurple.add(currentGrid.getIndexByBoxIndex(box, rcl));
+                                }
+                                removeInHGroupsOperation.addStep(new RemovePossibleHGroupStep<>(fullCellIndex, i, groupIndices, nonGroupIndices, toPurple));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        removeInHGroupsOperation.completeInitialization();
+        if (removeInHGroupsOperation.isDoingNothing()) {
+            return false;
+        }
+        history.addOperation(removeInHGroupsOperation);
+        return true;
+    }
+
+    private boolean computeOutsideHGroups(int groupSize) {
+        System.out.println("Computing outside groups of size " + groupSize);
+
+        RemoveOutsideHGroupsOperation<ClassicGrid, ClassicCell> removeOutsideHGroupsOperation = new RemoveOutsideHGroupsOperation<>(history.getNextOperationID());
+
+        // check rows
+        for (int row = 0; row < 9; row++) {
+            List<ClassicCell> rowCells = currentGrid.getRow(row);
+            Set<Integer> rowEmptyCells = new HashSet<>();
+            for (int i = 0; i < 9; i++) {
+                if (!rowCells.get(i).isSet()) rowEmptyCells.add(i);
+            }
+            if (rowEmptyCells.size() <= groupSize) continue;
+            for (Set<Integer> cellCombination : Sets.combinations(rowEmptyCells, groupSize)) {
+                Set<Integer> possibleValues = new HashSet<>();
+                for (int rowCellIndex : cellCombination) {
+                    possibleValues.addAll(rowCells.get(rowCellIndex).getPossibleValues());
+                }
+                
+                if (possibleValues.size() <= cellCombination.size()) {
+                    for (int rowCellIndex = 0; rowCellIndex < 9; rowCellIndex++) {
+                        ClassicCell cell = rowCells.get(rowCellIndex);
+                        if (cell.isSet() || cellCombination.contains(rowCellIndex)) continue;
+                        for (int i = 0; i < 9; i++) {
+                            if (!possibleValues.contains(i)) continue;
+                            int fullCellIndex = currentGrid.getIndexByRowIndex(row, rowCellIndex);
+                            boolean r = bufferGrid.get(fullCellIndex).removePossibleValue(i);
+                            if (r) {
+                                List<Integer> groupIndices = new ArrayList<>();
+                                List<Integer> nonGroupIndices = new ArrayList<>();
+                                List<Integer> toPurple = new ArrayList<>();
+                                for (int rcl = 0; rcl < 9; rcl++) {
+                                    if (cellCombination.contains(rcl)) groupIndices.add(currentGrid.getIndexByRowIndex(row, rcl));
+                                    else if (!rowCells.get(rcl).isSet()) nonGroupIndices.add(currentGrid.getIndexByRowIndex(row, rcl));
+                                    else toPurple.add(currentGrid.getIndexByRowIndex(row, rcl));
+                                }
+                                removeOutsideHGroupsOperation.addStep(new RemovePossibleHGroupStep<>(fullCellIndex, i, groupIndices, nonGroupIndices, toPurple));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // check columns
+        for (int column = 0; column < 9; column++) {
+            List<ClassicCell> columnCells = currentGrid.getColumn(column);
+            Set<Integer> columnEmptyCells = new HashSet<>();
+            for (int i = 0; i < 9; i++) {
+                if (!columnCells.get(i).isSet()) columnEmptyCells.add(i);
+            }
+            if (columnEmptyCells.size() <= groupSize) continue;
+            for (Set<Integer> cellCombination : Sets.combinations(columnEmptyCells, groupSize)) {
+                Set<Integer> possibleValues = new HashSet<>();
+                for (int columnCellIndex : cellCombination) {
+                    possibleValues.addAll(columnCells.get(columnCellIndex).getPossibleValues());
+                }
+                
+                if (possibleValues.size() <= cellCombination.size()) {
+                    for (int columnCellIndex = 0; columnCellIndex < 9; columnCellIndex++) {
+                        ClassicCell cell = columnCells.get(columnCellIndex);
+                        if (cell.isSet() || cellCombination.contains(columnCellIndex)) continue;
+                        for (int i = 0; i < 9; i++) {
+                            if (!possibleValues.contains(i)) continue;
+                            int fullCellIndex = currentGrid.getIndexByColumnIndex(column, columnCellIndex);
+                            boolean r = bufferGrid.get(fullCellIndex).removePossibleValue(i);
+                            if (r) {
+                                List<Integer> groupIndices = new ArrayList<>();
+                                List<Integer> nonGroupIndices = new ArrayList<>();
+                                List<Integer> toPurple = new ArrayList<>();
+                                for (int rcl = 0; rcl < 9; rcl++) {
+                                    if (cellCombination.contains(rcl)) groupIndices.add(currentGrid.getIndexByColumnIndex(column, rcl));
+                                    else if (!columnCells.get(rcl).isSet()) nonGroupIndices.add(currentGrid.getIndexByColumnIndex(column, rcl));
+                                    else toPurple.add(currentGrid.getIndexByColumnIndex(column, rcl));
+                                }
+                                removeOutsideHGroupsOperation.addStep(new RemovePossibleHGroupStep<>(fullCellIndex, i, groupIndices, nonGroupIndices, toPurple));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // check boxes
+        for (int box = 0; box < 9; box++) {
+            List<ClassicCell> boxCells = currentGrid.getBox(box);
+            Set<Integer> boxEmptyCells = new HashSet<>();
+            for (int i = 0; i < 9; i++) {
+                if (!boxCells.get(i).isSet()) boxEmptyCells.add(i);
+            }
+            if (boxEmptyCells.size() <= groupSize) continue;
+            for (Set<Integer> cellCombination : Sets.combinations(boxEmptyCells, groupSize)) {
+                Set<Integer> possibleValues = new HashSet<>();
+                for (int boxCellIndex : cellCombination) {
+                    possibleValues.addAll(boxCells.get(boxCellIndex).getPossibleValues());
+                }
+                
+                if (possibleValues.size() <= cellCombination.size()) {
+                    for (int boxCellIndex = 0; boxCellIndex < 9; boxCellIndex++) {
+                        ClassicCell cell = boxCells.get(boxCellIndex);
+                        if (cell.isSet() || cellCombination.contains(boxCellIndex)) continue;
+                        for (int i = 0; i < 9; i++) {
+                            if (!possibleValues.contains(i)) continue;
+                            int fullCellIndex = currentGrid.getIndexByBoxIndex(box, boxCellIndex);
+                            boolean r = bufferGrid.get(fullCellIndex).removePossibleValue(i);
+                            if (r) {
+                                List<Integer> groupIndices = new ArrayList<>();
+                                List<Integer> nonGroupIndices = new ArrayList<>();
+                                List<Integer> toPurple = new ArrayList<>();
+                                for (int rcl = 0; rcl < 9; rcl++) {
+                                    if (cellCombination.contains(rcl)) groupIndices.add(currentGrid.getIndexByBoxIndex(box, rcl));
+                                    else if (!boxCells.get(rcl).isSet()) nonGroupIndices.add(currentGrid.getIndexByBoxIndex(box, rcl));
+                                    else toPurple.add(currentGrid.getIndexByBoxIndex(box, rcl));
+                                }
+                                removeOutsideHGroupsOperation.addStep(new RemovePossibleHGroupStep<>(fullCellIndex, i, groupIndices, nonGroupIndices, toPurple));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        removeOutsideHGroupsOperation.completeInitialization();
+        if (removeOutsideHGroupsOperation.isDoingNothing()) {
+            return false;
+        }
+        history.addOperation(removeOutsideHGroupsOperation);
+        return true;
+    }
 
     private boolean computePointingValues() {
         System.out.println("Computing pointing values...");
@@ -100,7 +405,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
                         if (!pointingCellIndices.contains(cellIndex) && !currentGrid.get(cellIndex).isSet()) {
                             boolean r = bufferGrid.get(cellIndex).removePossibleValue(n);
                             if (r) {
-                                removePointingOperation.addStep(new RemovePointingStep<>(cellIndex, n, reasonCellIndices, pointingCellIndices, toPurpleCellIndices));
+                                removePointingOperation.addStep(new RemovePossibleInPointingStep<>(cellIndex, n, reasonCellIndices, pointingCellIndices, toPurpleCellIndices));
                             }
                         }
                     }
@@ -141,7 +446,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
                         if (!pointingCellIndices.contains(cellIndex) && !currentGrid.get(cellIndex).isSet()) {
                             boolean r = bufferGrid.get(cellIndex).removePossibleValue(n);
                             if (r) {
-                                removePointingOperation.addStep(new RemovePointingStep<>(cellIndex, n, reasonCellIndices, pointingCellIndices, toPurpleCellIndices));
+                                removePointingOperation.addStep(new RemovePossibleInPointingStep<>(cellIndex, n, reasonCellIndices, pointingCellIndices, toPurpleCellIndices));
                             }
                         }
                     }
@@ -182,7 +487,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
                         if (!pointingCellIndices.contains(cellIndex) && !currentGrid.get(cellIndex).isSet()) {
                             boolean r = bufferGrid.get(cellIndex).removePossibleValue(n);
                             if (r) {
-                                removePointingOperation.addStep(new RemovePointingStep<>(cellIndex, n, reasonCellIndices, pointingCellIndices, toPurpleCellIndices));
+                                removePointingOperation.addStep(new RemovePossibleInPointingStep<>(cellIndex, n, reasonCellIndices, pointingCellIndices, toPurpleCellIndices));
                             }
                         }
                     }
@@ -223,7 +528,7 @@ public class ClassicSudoku extends AbstractSudoku<ClassicGrid, ClassicCell> {
                         if (!pointingCellIndices.contains(cellIndex) && !currentGrid.get(cellIndex).isSet()) {
                             boolean r = bufferGrid.get(cellIndex).removePossibleValue(n);
                             if (r) {
-                                removePointingOperation.addStep(new RemovePointingStep<>(cellIndex, n, reasonCellIndices, pointingCellIndices, toPurpleCellIndices));
+                                removePointingOperation.addStep(new RemovePossibleInPointingStep<>(cellIndex, n, reasonCellIndices, pointingCellIndices, toPurpleCellIndices));
                             }
                         }
                     }
