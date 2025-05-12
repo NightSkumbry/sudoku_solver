@@ -3,6 +3,7 @@ package util;
 import states.ClassicSudokuMenu;
 import states.AboutMenu;
 import states.AbstractState;
+import states.ClassicDiagonalSudokuMenu;
 import states.MainMenu;
 import states.TypeSelectionMenu;
 
@@ -10,7 +11,9 @@ public enum ProgramState {
     MENU(new MainMenu()), 
     ABOUT(new AboutMenu()),
     CLIPBOARD_TYPE_SELECTION(new TypeSelectionMenu()),
-    CLASSIC_SUDOKU(new ClassicSudokuMenu()),;
+    CLASSIC_SUDOKU(new ClassicSudokuMenu()),
+    CLASSIC_DIAGONAL_SUDOKU(new ClassicDiagonalSudokuMenu()),
+    ;
 
     public static ProgramState currentState = ProgramState.MENU;
     private AbstractState state;
